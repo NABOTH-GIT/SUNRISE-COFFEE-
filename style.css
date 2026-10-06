@@ -1,233 +1,250 @@
-/* ---------- Design tokens ---------- */
-:root {
-  --espresso: #2B1810;
-  --brown: #5A3420;
-  --brown-soft: #7A4B30;
-  --cream: #F5E9D3;
-  --cream-light: #FBF5E9;
-  --gold: #C9962B;
-  --gold-light: #E3B552;
-  --ink: #2B1810;
-  --muted: #6E5646;
-  --line: rgba(90, 52, 32, .18);
-  --radius: 18px;
-  --head: "Fraunces", Georgia, serif;
-  --body: "DM Sans", system-ui, sans-serif;
+"use strict";
+
+/* ---------- Data ---------- */
+const MENU = {
+  coffee: [
+    { name: "Espresso", desc: "Double shot, rich and sweet", price: 3.5 },
+    { name: "Americano", desc: "Espresso topped with hot water", price: 4 },
+    { name: "Flat white", desc: "Velvety milk, two shots", price: 4.75 },
+    { name: "Cappuccino", desc: "Thick foam, dusted with cocoa", price: 4.75 },
+    { name: "Sunrise latte", desc: "Espresso, honey and cinnamon", price: 5.5 },
+    { name: "Cold brew", desc: "Steeped 18 hours, served over ice", price: 5 },
+    { name: "Masala chai", desc: "Spiced black tea with steamed milk", price: 4.5 },
+    { name: "Hot chocolate", desc: "Dark cocoa with whipped cream", price: 4.5 }
+  ],
+  food: [
+    { name: "Butter croissant", desc: "Flaky and baked at dawn", price: 3.75 },
+    { name: "Cinnamon roll", desc: "Warm, with cream cheese glaze", price: 4.5 },
+    { name: "Banana bread", desc: "Toasted and served with butter", price: 3.95 },
+    { name: "Blueberry muffin", desc: "Golden crumb top", price: 3.5 },
+    { name: "Avocado toast", desc: "Sourdough, lime and chili flakes", price: 8.5 },
+    { name: "Egg & cheese bagel", desc: "Fried egg, cheddar and tomato", price: 7.5 },
+    { name: "Granola bowl", desc: "Yoghurt, honey and fresh fruit", price: 6.95 },
+    { name: "Ham & cheese toastie", desc: "Grilled sourdough, mustard", price: 7.25 }
+  ]
+};
+
+const REVIEWS = [
+  { text: "The best flat white in the neighbourhood. The staff remember my order and the croissants are unreal.", name: "Amara K.", stars: 5 },
+  { text: "A calm, cozy spot to work for a few hours. Great coffee, friendly team and fast Wi‑Fi.", name: "Daniel M.", stars: 5 },
+  { text: "Their sunrise latte is my weekend treat. Honey and cinnamon, perfectly balanced.", name: "Priya S.", stars: 5 },
+  { text: "Lovely breakfast menu and generous portions. We come here every Saturday with the kids.", name: "Tom & Lena R.", stars: 4 }
+];
+
+// Hours by day index (0 = Sunday). Values are 24h decimals.
+const HOURS = [[7, 16], [6.5, 17], [6.5, 17], [6.5, 17], [6.5, 17], [6.5, 17], [7, 16]];
+const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
+const money = n => "$" + n.toFixed(2);
+const $ = id => document.getElementById(id);
+
+/* ---------- Navigation ---------- */
+const header = $("header");
+const navToggle = $("navToggle");
+const navLinks = $("navLinks");
+
+function setNav(open) {
+  if (!navLinks || !navToggle) return;
+  navLinks.classList.toggle("open", open);
+  navToggle.setAttribute("aria-expanded", open);
+  navToggle.setAttribute("aria-label", open ? "Close menu" : "Open menu");
 }
 
-/* ---------- Base ---------- */
-*, *::before, *::after { box-sizing: border-box; }
-html { scroll-behavior: smooth; scroll-padding-top: 76px; }
-body {
-  margin: 0;
-  font: 400 1.0625rem/1.7 var(--body);
-  color: var(--ink);
-  background: var(--cream-light);
+if (navToggle && navLinks) {
+  navToggle.addEventListener("click", () => setNav(!navLinks.classList.contains("open")));
+  navLinks.addEventListener("click", e => { if (e.target.closest("a, button")) setNav(false); });
+  document.addEventListener("click", e => {
+    if (!navLinks.classList.contains("open")) return;
+    const clickedInsideNav = navLinks.contains(e.target) || navToggle.contains(e.target);
+    if (!clickedInsideNav) setNav(false);
+  });
+  window.addEventListener("resize", () => {
+    if (window.innerWidth > 760) setNav(false);
+  });
 }
-h1, h2, h3 { font-family: var(--head); line-height: 1.1; margin: 0 0 .75rem; letter-spacing: -.01em; }
-h1 { font-size: clamp(2.5rem, 7vw, 4.75rem); }
-h2 { font-size: clamp(1.9rem, 4.5vw, 3rem); }
-h3 { font-size: 1.25rem; }
-p { margin: 0 0 1rem; }
-a { color: inherit; }
-ul { list-style: none; margin: 0; padding: 0; }
-:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; border-radius: 6px; }
 
-.container { width: min(1120px, 100% - 2.5rem); margin-inline: auto; }
-.section { padding: clamp(4rem, 9vw, 7rem) 0; }
-.section-dark { background: var(--espresso); color: var(--cream); }
-.section-cream { background: var(--cream); }
-.section-head { max-width: 38rem; margin-bottom: 2.5rem; }
-.section-head p { color: var(--muted); }
-.section-dark .section-head p { color: rgba(245, 233, 211, .75); }
-.center { text-align: center; margin-top: 2.5rem; }
-
-/* ---------- Buttons ---------- */
-.btn {
-  display: inline-block;
-  padding: .85rem 1.6rem;
-  border-radius: 999px;
-  font: 700 1rem var(--body);
-  text-decoration: none;
-  border: 2px solid transparent;
-  cursor: pointer;
-  transition: transform .15s, background .2s, color .2s;
+if (header) {
+  window.addEventListener("scroll", () => header.classList.toggle("scrolled", window.scrollY > 10), { passive: true });
 }
-.btn:hover { transform: translateY(-2px); }
-.btn-gold { background: var(--gold); color: var(--espresso); }
-.btn-gold:hover { background: var(--gold-light); }
-.btn-brown { background: var(--brown); color: var(--cream); }
-.btn-brown:hover { background: var(--espresso); }
-.btn-outline { border-color: var(--cream); color: var(--cream); }
-.btn-outline:hover { background: var(--cream); color: var(--espresso); }
-.wide { width: 100%; }
 
-/* ---------- Header ---------- */
-.site-header {
-  position: sticky; top: 0; z-index: 50;
-  background: var(--espresso);
-  color: var(--cream);
-  transition: box-shadow .2s;
+/* ---------- Menu tabs ---------- */
+const menuList = $("menuList");
+function renderMenu(cat) {
+  if (!menuList) return;
+  menuList.innerHTML = MENU[cat].map(i => `
+    <li class="menu-item">
+      <div><h3>${i.name}</h3><p>${i.desc}</p></div>
+      <span class="price">${money(i.price)}</span>
+    </li>`).join("");
+  document.querySelectorAll(".tab").forEach(t => {
+    const on = t.dataset.cat === cat;
+    t.classList.toggle("active", on);
+    t.setAttribute("aria-selected", on);
+  });
 }
-.site-header.scrolled { box-shadow: 0 6px 24px rgba(0, 0, 0, .3); }
-.nav { display: flex; align-items: center; justify-content: space-between; height: 72px; }
-.logo { display: inline-flex; align-items: center; gap: .6rem; font: 700 1.35rem var(--head); text-decoration: none; }
-.logo-sun { width: 20px; height: 20px; border-radius: 50%; background: var(--gold); box-shadow: 0 0 0 4px rgba(201, 150, 43, .3); }
-.nav-links { display: flex; align-items: center; gap: 1.75rem; }
-.nav-links a { text-decoration: none; font-weight: 500; }
-.nav-links a:hover { color: var(--gold-light); }
-.nav-links .btn { padding: .6rem 1.2rem; }
-.nav-toggle { display: none; background: none; border: 0; width: 44px; height: 44px; cursor: pointer; padding: 10px; }
-.nav-toggle span { display: block; height: 2px; background: var(--cream); margin: 6px 0; transition: transform .2s, opacity .2s; }
-.nav-toggle[aria-expanded="true"] span:nth-child(1) { transform: translateY(8px) rotate(45deg); }
-.nav-toggle[aria-expanded="true"] span:nth-child(2) { opacity: 0; }
-.nav-toggle[aria-expanded="true"] span:nth-child(3) { transform: translateY(-8px) rotate(-45deg); }
 
-/* ---------- Hero ---------- */
-.hero {
-  background: radial-gradient(circle at 80% 30%, #6B3F26 0%, var(--brown) 40%, var(--espresso) 100%);
-  color: var(--cream);
-  padding: clamp(3.5rem, 8vw, 6.5rem) 0;
-  overflow: hidden;
+document.querySelectorAll(".tab").forEach(t => t.addEventListener("click", () => renderMenu(t.dataset.cat)));
+renderMenu("coffee");
+
+/* ---------- Reviews slider ---------- */
+const slidesEl = $("slides");
+const dotsEl = $("dots");
+let current = 0, timer;
+
+if (slidesEl && dotsEl) {
+  slidesEl.innerHTML = REVIEWS.map((r, i) => `
+    <figure class="slide${i === 0 ? " active" : ""}" style="margin:0">
+      <div class="stars" aria-label="${r.stars} out of 5 stars">${"★".repeat(r.stars)}${"☆".repeat(5 - r.stars)}</div>
+      <blockquote>“${r.text}”</blockquote>
+      <cite>${r.name}</cite>
+    </figure>`).join("");
+  dotsEl.innerHTML = REVIEWS.map((_, i) => `<button class="dot${i === 0 ? " active" : ""}" aria-label="Show review ${i + 1}"></button>`).join("");
+
+  const slides = slidesEl.children;
+  const dots = dotsEl.children;
+
+  function goTo(n) {
+    slides[current].classList.remove("active");
+    dots[current].classList.remove("active");
+    current = (n + REVIEWS.length) % REVIEWS.length;
+    slides[current].classList.add("active");
+    dots[current].classList.add("active");
+  }
+  function autoplay() {
+    clearInterval(timer);
+    if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      timer = setInterval(() => goTo(current + 1), 6000);
+    }
+  }
+  $("prev").addEventListener("click", () => { goTo(current - 1); autoplay(); });
+  $("next").addEventListener("click", () => { goTo(current + 1); autoplay(); });
+  [...dots].forEach((d, i) => d.addEventListener("click", () => { goTo(i); autoplay(); }));
+  autoplay();
 }
-.hero-grid { display: grid; grid-template-columns: 1.15fr 1fr; gap: 3rem; align-items: center; }
-.kicker { color: var(--gold-light); font-weight: 700; margin-bottom: 1rem; }
-.hero h1 { color: var(--cream); }
-.lead { font-size: 1.2rem; max-width: 32rem; color: rgba(245, 233, 211, .88); }
-.hero-actions { display: flex; flex-wrap: wrap; gap: .85rem; margin: 2rem 0; }
-.hero-stats { display: flex; flex-wrap: wrap; gap: 1.5rem 2.5rem; color: rgba(245, 233, 211, .75); font-size: .95rem; }
-.hero-stats strong { display: block; font: 700 1.6rem var(--head); color: var(--gold-light); }
-.cup { width: 100%; max-width: 420px; margin-inline: auto; display: block; }
-.steam { animation: steam 3.5s ease-in-out infinite; }
-@keyframes steam { 0%, 100% { opacity: .35; transform: translateY(0); } 50% { opacity: 1; transform: translateY(-6px); } }
 
-/* ---------- About ---------- */
-.about-grid { display: grid; grid-template-columns: 1.1fr 1fr; gap: clamp(2rem, 6vw, 5rem); align-items: center; }
-.about-grid p { color: var(--muted); }
-.values { display: grid; gap: 1rem; }
-.value { background: var(--cream); border-left: 5px solid var(--gold); border-radius: 0 var(--radius) var(--radius) 0; padding: 1.1rem 1.4rem; }
-.value h3 { margin-bottom: .25rem; }
-.value p { margin: 0; font-size: .98rem; }
-
-/* ---------- Menu ---------- */
-.tabs { display: flex; gap: .6rem; margin-bottom: 1.5rem; }
-.tab {
-  background: transparent; color: var(--cream);
-  border: 1.5px solid rgba(245, 233, 211, .35);
-  padding: .6rem 1.4rem; border-radius: 999px;
-  font: 500 1rem var(--body); cursor: pointer;
+/* ---------- Opening hours ---------- */
+const fmt = h => {
+  const hr = Math.floor(h) % 12 || 12;
+  return `${hr}:${h % 1 ? "30" : "00"} ${h < 12 ? "AM" : "PM"}`;
+};
+const now = new Date();
+const today = now.getDay();
+const t = now.getHours() + now.getMinutes() / 60;
+const hoursBody = $("hoursBody");
+if (hoursBody) {
+  hoursBody.innerHTML = [1, 2, 3, 4, 5, 6, 0].map(d => `
+    <tr class="${d === today ? "today" : ""}">
+      <td>${DAYS[d]}</td><td>${fmt(HOURS[d][0])} – ${fmt(HOURS[d][1])}</td>
+    </tr>`).join("");
 }
-.tab.active { background: var(--gold); border-color: var(--gold); color: var(--espresso); font-weight: 700; }
-.menu-list { display: grid; grid-template-columns: repeat(2, 1fr); column-gap: 3.5rem; }
-.menu-item { display: flex; justify-content: space-between; gap: 1rem; padding: 1.15rem 0; border-bottom: 1px dashed rgba(245, 233, 211, .25); }
-.menu-item h3 { font-family: var(--body); font-weight: 700; font-size: 1.15rem; margin: 0; }
-.menu-item p { margin: .15rem 0 0; font-size: .95rem; color: rgba(245, 233, 211, .7); }
-.price { font: 700 1.2rem var(--head); color: var(--gold-light); white-space: nowrap; }
 
-/* ---------- Reviews ---------- */
-.slider { max-width: 760px; margin-inline: auto; text-align: center; }
-.slides { position: relative; min-height: 250px; }
-.slide { position: absolute; inset: 0; opacity: 0; visibility: hidden; transition: opacity .5s; background: var(--cream); border-radius: var(--radius); padding: 2rem 1.75rem; display: flex; flex-direction: column; justify-content: center; }
-.slide.active { opacity: 1; visibility: visible; }
-.stars { color: var(--gold); letter-spacing: .2em; font-size: 1.25rem; margin-bottom: .75rem; }
-.slide blockquote { margin: 0 0 1rem; font: 600 clamp(1.1rem, 2.6vw, 1.45rem)/1.5 var(--head); }
-.slide cite { font-style: normal; color: var(--muted); font-weight: 500; }
-.slider-controls { display: flex; justify-content: center; align-items: center; gap: 1.25rem; margin-top: 1.5rem; }
-.round { width: 44px; height: 44px; border-radius: 50%; border: 1.5px solid var(--brown); background: transparent; color: var(--brown); font-size: 1.2rem; cursor: pointer; }
-.round:hover { background: var(--brown); color: var(--cream); }
-.dots { display: flex; gap: .5rem; }
-.dot { width: 11px; height: 11px; padding: 0; border-radius: 50%; border: 0; background: var(--line); cursor: pointer; }
-.dot.active { background: var(--gold); transform: scale(1.25); }
-
-/* ---------- Hours & contact ---------- */
-.info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.75rem; align-items: start; }
-.card { background: var(--cream-light); border-radius: var(--radius); padding: clamp(1.5rem, 4vw, 2.5rem); box-shadow: 0 10px 30px rgba(90, 52, 32, .1); }
-.status { display: inline-flex; align-items: center; gap: .5rem; font-weight: 700; }
-.status::before { content: ""; width: 11px; height: 11px; border-radius: 50%; background: var(--muted); }
-.status.open::before { background: #2E8B57; }
-.status.closed::before { background: #B3392F; }
-.hours-table { width: 100%; border-collapse: collapse; margin-top: .75rem; }
-.hours-table td { padding: .7rem 0; border-bottom: 1px solid var(--line); }
-.hours-table td:last-child { text-align: right; }
-.hours-table tr.today { font-weight: 700; color: var(--brown-soft); }
-.contact-list { margin-bottom: 1.5rem; }
-.contact-list li { display: flex; justify-content: space-between; gap: 1rem; padding: .6rem 0; border-bottom: 1px solid var(--line); }
-.contact-list span { color: var(--muted); }
-.contact-list a { font-weight: 500; word-break: break-word; text-align: right; }
-form { display: grid; gap: 1rem; }
-label { display: grid; gap: .35rem; font-weight: 700; font-size: .95rem; }
-input, textarea, select {
-  font: inherit; font-weight: 400; color: var(--ink);
-  background: #fff; border: 1.5px solid var(--line); border-radius: 12px;
-  padding: .75rem 1rem; width: 100%;
+const status = $("status");
+if (status) {
+  const [open, close] = HOURS[today];
+  if (t >= open && t < close) {
+    status.className = "status open";
+    status.textContent = `Open now, until ${fmt(close)}`;
+  } else {
+    status.className = "status closed";
+    status.textContent = t < open
+      ? `Closed. Opens today at ${fmt(open)}`
+      : `Closed. Opens tomorrow at ${fmt(HOURS[(today + 1) % 7][0])}`;
+  }
 }
-textarea { resize: vertical; }
-.form-msg { min-height: 1.5rem; margin: 0; font-weight: 500; }
-.form-msg.error { color: #B3392F; }
-.form-msg.ok { color: #2E8B57; }
 
-/* ---------- Location ---------- */
-.location-grid { display: grid; grid-template-columns: 1fr 1.2fr; gap: clamp(2rem, 6vw, 4rem); align-items: center; }
-.location-grid p { color: var(--muted); }
-.map { position: relative; min-height: 320px; border-radius: var(--radius); overflow: hidden; background: #E9D9BA; border: 1px solid var(--line); }
-.map-grid {
-  position: absolute; inset: 0;
-  background:
-    linear-gradient(90deg, transparent 48%, rgba(255, 255, 255, .8) 48% 52%, transparent 52%) 0 0 / 160px 160px,
-    linear-gradient(0deg, transparent 47%, rgba(255, 255, 255, .8) 47% 53%, transparent 53%) 0 0 / 160px 160px,
-    linear-gradient(45deg, transparent 49%, rgba(201, 150, 43, .25) 49% 51%, transparent 51%) 0 0 / 240px 240px;
+/* ---------- Contact form ---------- */
+const contactForm = $("contactForm");
+if (contactForm) {
+  contactForm.addEventListener("submit", e => {
+    e.preventDefault();
+    const f = e.target, msg = $("formMsg");
+    const ok = f.name.value.trim() && /^\S+@\S+\.\S+$/.test(f.email.value) && f.message.value.trim();
+    if (!ok) {
+      msg.className = "form-msg error";
+      msg.textContent = "Please enter your name, a valid email and a message.";
+      return;
+    }
+    msg.className = "form-msg ok";
+    msg.textContent = `Thanks, ${f.name.value.trim().split(" ")[0]}! We'll reply soon.`;
+    f.reset();
+  });
 }
-.pin { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -100%); background: var(--espresso); color: var(--cream); padding: .5rem 1rem; border-radius: 999px; font-weight: 700; white-space: nowrap; }
-.pin span { position: absolute; left: 50%; bottom: -8px; width: 16px; height: 16px; background: var(--espresso); transform: translateX(-50%) rotate(45deg); z-index: -1; }
-
-/* ---------- Footer ---------- */
-.site-footer { background: var(--espresso); color: var(--cream); padding: 3rem 0 2rem; }
-.footer-grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 1.5rem 2rem; align-items: start; }
-.footer-grid p { color: rgba(245, 233, 211, .7); margin: .75rem 0 0; }
-.footer-links { display: flex; flex-wrap: wrap; gap: .5rem 1.5rem; justify-content: flex-end; }
-.footer-links a { text-decoration: none; }
-.footer-links a:hover { color: var(--gold-light); }
-.copy { grid-column: 1 / -1; border-top: 1px solid rgba(245, 233, 211, .15); padding-top: 1.25rem; font-size: .9rem; }
 
 /* ---------- Order dialog ---------- */
-dialog { width: min(520px, 100% - 1.5rem); max-height: 90vh; padding: 0; border: 0; border-radius: var(--radius); background: var(--cream-light); color: var(--ink); overflow: auto; }
-dialog::backdrop { background: rgba(43, 24, 16, .65); }
-.order-head { display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 1.5rem; background: var(--espresso); color: var(--cream); position: sticky; top: 0; }
-.order-head h2 { margin: 0; font-size: 1.5rem; }
-.order-head .round { border-color: var(--cream); color: var(--cream); }
-.order-body { padding: 1.25rem 1.5rem 1.5rem; display: grid; gap: 1rem; }
-.order-group { font: 700 .95rem var(--body); color: var(--brown-soft); margin: .5rem 0 0; }
-.order-row { display: flex; align-items: center; justify-content: space-between; gap: .75rem; padding: .5rem 0; border-bottom: 1px solid var(--line); }
-.order-row small { display: block; color: var(--muted); }
-.qty { display: flex; align-items: center; gap: .6rem; }
-.qty button { width: 34px; height: 34px; border-radius: 50%; border: 1.5px solid var(--brown); background: transparent; color: var(--brown); font-size: 1.1rem; cursor: pointer; }
-.qty button:hover { background: var(--brown); color: var(--cream); }
-.qty output { min-width: 1.2rem; text-align: center; font-weight: 700; }
-.order-total { display: flex; justify-content: space-between; font-size: 1.2rem; padding-top: .5rem; }
+const dialog = $("orderDialog");
+const cart = {};
+const allItems = [
+  ...MENU.coffee.map(i => ({ ...i, group: "Coffee" })),
+  ...MENU.food.map(i => ({ ...i, group: "Food" }))
+];
 
-/* ---------- Responsive ---------- */
-@media (max-width: 860px) {
-  .hero-grid, .about-grid, .info-grid, .location-grid { grid-template-columns: 1fr; }
-  .hero-art { order: -1; }
-  .cup { max-width: 220px; }
-  .menu-list { grid-template-columns: 1fr; }
-  .footer-grid { grid-template-columns: 1fr; }
-  .footer-links { justify-content: flex-start; }
+function renderOrder() {
+  let html = "", group = "";
+  allItems.forEach((it, idx) => {
+    if (it.group !== group) { group = it.group; html += `<p class="order-group">${group}</p>`; }
+    html += `
+      <div class="order-row">
+        <div>${it.name}<small>${money(it.price)}</small></div>
+        <div class="qty">
+          <button type="button" data-i="${idx}" data-d="-1" aria-label="Remove one ${it.name}">−</button>
+          <output id="q${idx}">${cart[idx] || 0}</output>
+          <button type="button" data-i="${idx}" data-d="1" aria-label="Add one ${it.name}">+</button>
+        </div>
+      </div>`;
+  });
+  $("orderItems").innerHTML = html;
+  updateTotal();
 }
-@media (max-width: 760px) {
-  .nav-toggle { display: block; }
-  .nav-links {
-    position: absolute; top: 72px; left: 0; right: 0;
-    flex-direction: column; align-items: flex-start; gap: 1.1rem;
-    background: var(--espresso); padding: 1.5rem 1.25rem 1.75rem;
-    border-top: 1px solid rgba(245, 233, 211, .15);
-    display: none;
+function updateTotal() {
+  const total = Object.entries(cart).reduce((s, [i, q]) => s + allItems[i].price * q, 0);
+  $("orderTotal").textContent = money(total);
+}
+
+if ($("orderItems")) {
+  $("orderItems").addEventListener("click", e => {
+    const b = e.target.closest("button[data-i]");
+    if (!b) return;
+    const i = b.dataset.i;
+    cart[i] = Math.max(0, (cart[i] || 0) + Number(b.dataset.d));
+    $("q" + i).textContent = cart[i];
+    updateTotal();
+  });
+}
+
+document.querySelectorAll(".order-open").forEach(b => b.addEventListener("click", () => {
+  if (!dialog) return;
+  $("orderMsg").textContent = "";
+  renderOrder();
+  if (typeof dialog.showModal === "function") {
+    dialog.showModal();
+  } else {
+    dialog.setAttribute("open", "open");
   }
-  .nav-links.open { display: flex; }
-  .slides { min-height: 330px; }
+}));
+if (dialog) {
+  dialog.addEventListener("click", e => {
+    if (e.target === dialog) {
+      if (typeof dialog.close === "function") dialog.close();
+      else dialog.removeAttribute("open");
+    }
+  });
 }
-@media (prefers-reduced-motion: reduce) {
-  html { scroll-behavior: auto; }
-  .steam { animation: none; }
-  * { transition: none !important; }
+
+const orderSubmit = $("orderSubmit");
+if (orderSubmit) {
+  orderSubmit.addEventListener("click", () => {
+    const msg = $("orderMsg");
+    const count = Object.values(cart).reduce((a, b) => a + b, 0);
+    const name = $("orderName").value.trim();
+    if (!count) { msg.className = "form-msg error"; msg.textContent = "Add at least one item to your order."; return; }
+    if (!name) { msg.className = "form-msg error"; msg.textContent = "Please enter your name for pick-up."; return; }
+    msg.className = "form-msg ok";
+    msg.textContent = `Thanks, ${name.split(" ")[0]}! ${count} item${count > 1 ? "s" : ""} for pick-up (${$("orderTime").value.toLowerCase()}), ${$("orderTotal").textContent}.`;
+    Object.keys(cart).forEach(k => delete cart[k]);
+    renderOrder();
+  });
 }
+
+/* ---------- Footer ---------- */
+const yearEl = $("year");
+if (yearEl) yearEl.textContent = new Date().getFullYear();
