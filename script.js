@@ -1,0 +1,208 @@
+"use strict";
+
+/* ---------- Data ---------- */
+const MENU = {
+  coffee: [
+    { name: "Espresso", desc: "Double shot, rich and sweet", price: 3.5 },
+    { name: "Americano", desc: "Espresso topped with hot water", price: 4 },
+    { name: "Flat white", desc: "Velvety milk, two shots", price: 4.75 },
+    { name: "Cappuccino", desc: "Thick foam, dusted with cocoa", price: 4.75 },
+    { name: "Sunrise latte", desc: "Espresso, honey and cinnamon", price: 5.5 },
+    { name: "Cold brew", desc: "Steeped 18 hours, served over ice", price: 5 },
+    { name: "Masala chai", desc: "Spiced black tea with steamed milk", price: 4.5 },
+    { name: "Hot chocolate", desc: "Dark cocoa with whipped cream", price: 4.5 }
+  ],
+  food: [
+    { name: "Butter croissant", desc: "Flaky and baked at dawn", price: 3.75 },
+    { name: "Cinnamon roll", desc: "Warm, with cream cheese glaze", price: 4.5 },
+    { name: "Banana bread", desc: "Toasted and served with butter", price: 3.95 },
+    { name: "Blueberry muffin", desc: "Golden crumb top", price: 3.5 },
+    { name: "Avocado toast", desc: "Sourdough, lime and chili flakes", price: 8.5 },
+    { name: "Egg & cheese bagel", desc: "Fried egg, cheddar and tomato", price: 7.5 },
+    { name: "Granola bowl", desc: "Yoghurt, honey and fresh fruit", price: 6.95 },
+    { name: "Ham & cheese toastie", desc: "Grilled sourdough, mustard", price: 7.25 }
+  ]
+};
+
+const REVIEWS = [
+  { text: "The best flat white in the neighbourhood. The staff remember my order and the croissants are unreal.", name: "Amara K.", stars: 5 },
+  { text: "A calm, cozy spot to work for a few hours. Great coffee, friendly team and fast Wi-Fi.", name: "Daniel M.", stars: 5 },
+  { text: "Their sunrise latte is my weekend treat. Honey and cinnamon, perfectly balanced.", name: "Priya S.", stars: 5 },
+  { text: "Lovely breakfast menu and generous portions. We come here every Saturday with the kids.", name: "Tom & Lena R.", stars: 4 }
+];
+
+// Hours by day index (0 = Sunday). Values are 24h decimals.
+const HOURS = [[7, 16], [6.5, 17], [6.5, 17], [6.5, 17], [6.5, 17], [6.5, 17], [7, 16]];
+const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
+const money = n => "$" + n.toFixed(2);
+const $ = id => document.getElementById(id);
+
+/* ---------- Navigation ---------- */
+const header = $("header");
+const navToggle = $("navToggle");
+const navLinks = $("navLinks");
+
+function setNav(open) {
+  navLinks.classList.toggle("open", open);
+  navToggle.setAttribute("aria-expanded", open);
+  navToggle.setAttribute("aria-label", open ? "Close menu" : "Open menu");
+}
+navToggle.addEventListener("click", () => setNav(!navLinks.classList.contains("open")));
+navLinks.addEventListener("click", e => { if (e.target.closest("a, button")) setNav(false); });
+window.addEventListener("scroll", () => header.classList.toggle("scrolled", window.scrollY > 10), { passive: true });
+
+/* ---------- Menu tabs ---------- */
+const menuList = $("menuList");
+function renderMenu(cat) {
+  menuList.innerHTML = MENU[cat].map(i => `
+    <li class="menu-item">
+      <div><h3>${i.name}</h3><p>${i.desc}</p></div>
+      <span class="price">${money(i.price)}</span>
+    </li>`).join("");
+  document.querySelectorAll(".tab").forEach(t => {
+    const on = t.dataset.cat === cat;
+    t.classList.toggle("active", on);
+    t.setAttribute("aria-selected", on);
+  });
+}
+document.querySelectorAll(".tab").forEach(t => t.addEventListener("click", () => renderMenu(t.dataset.cat)));
+renderMenu("coffee");
+
+/* ---------- Reviews slider ---------- */
+const slidesEl = $("slides");
+const dotsEl = $("dots");
+let current = 0, timer;
+
+slidesEl.innerHTML = REVIEWS.map((r, i) => `
+  <figure class="slide${i === 0 ? " active" : ""}" style="margin:0">
+    <div class="stars" aria-label="${r.stars} out of 5 stars">${"★".repeat(r.stars)}${"☆".repeat(5 - r.stars)}</div>
+    <blockquote>"${r.text}"</blockquote>
+    <cite>${r.name}</cite>
+  </figure>`).join("");
+dotsEl.innerHTML = REVIEWS.map((_, i) => `<button class="dot${i === 0 ? " active" : ""}" aria-label="Show review ${i + 1}"></button>`).join("");
+
+const slides = slidesEl.children;
+const dots = dotsEl.children;
+
+function goTo(n) {
+  slides[current].classList.remove("active");
+  dots[current].classList.remove("active");
+  current = (n + REVIEWS.length) % REVIEWS.length;
+  slides[current].classList.add("active");
+  dots[current].classList.add("active");
+}
+function autoplay() {
+  clearInterval(timer);
+  if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    timer = setInterval(() => goTo(current + 1), 6000);
+  }
+}
+$("prev").addEventListener("click", () => { goTo(current - 1); autoplay(); });
+$("next").addEventListener("click", () => { goTo(current + 1); autoplay(); });
+[...dots].forEach((d, i) => d.addEventListener("click", () => { goTo(i); autoplay(); }));
+autoplay();
+
+/* ---------- Opening hours ---------- */
+const fmt = h => {
+  const hr = Math.floor(h) % 12 || 12;
+  return `${hr}:${h % 1 ? "30" : "00"} ${h < 12 ? "AM" : "PM"}`;
+};
+const now = new Date();
+const today = now.getDay();
+const t = now.getHours() + now.getMinutes() / 60;
+
+$("hoursBody").innerHTML = [1, 2, 3, 4, 5, 6, 0].map(d => `
+  <tr class="${d === today ? "today" : ""}">
+    <td>${DAYS[d]}</td><td>${fmt(HOURS[d][0])} – ${fmt(HOURS[d][1])}</td>
+  </tr>`).join("");
+
+const status = $("status");
+const [open, close] = HOURS[today];
+if (t >= open && t < close) {
+  status.className = "status open";
+  status.textContent = `Open now, until ${fmt(close)}`;
+} else {
+  status.className = "status closed";
+  status.textContent = t < open
+    ? `Closed. Opens today at ${fmt(open)}`
+    : `Closed. Opens tomorrow at ${fmt(HOURS[(today + 1) % 7][0])}`;
+}
+
+/* ---------- Contact form ---------- */
+$("contactForm").addEventListener("submit", e => {
+  e.preventDefault();
+  const f = e.target, msg = $("formMsg");
+  const ok = f.name.value.trim() && /^\S+@\S+\.\S+$/.test(f.email.value) && f.message.value.trim();
+  if (!ok) {
+    msg.className = "form-msg error";
+    msg.textContent = "Please enter your name, a valid email and a message.";
+    return;
+  }
+  // Demo only: connect this to a form service or backend to receive messages.
+  msg.className = "form-msg ok";
+  msg.textContent = `Thanks, ${f.name.value.trim().split(" ")[0]}! We'll reply soon.`;
+  f.reset();
+});
+
+/* ---------- Order dialog ---------- */
+const dialog = $("orderDialog");
+const cart = {};
+const allItems = [
+  ...MENU.coffee.map(i => ({ ...i, group: "Coffee" })),
+  ...MENU.food.map(i => ({ ...i, group: "Food" }))
+];
+
+function renderOrder() {
+  let html = "", group = "";
+  allItems.forEach((it, idx) => {
+    if (it.group !== group) { group = it.group; html += `<p class="order-group">${group}</p>`; }
+    html += `
+      <div class="order-row">
+        <div>${it.name}<small>${money(it.price)}</small></div>
+        <div class="qty">
+          <button type="button" data-i="${idx}" data-d="-1" aria-label="Remove one ${it.name}">−</button>
+          <output id="q${idx}">${cart[idx] || 0}</output>
+          <button type="button" data-i="${idx}" data-d="1" aria-label="Add one ${it.name}">+</button>
+        </div>
+      </div>`;
+  });
+  $("orderItems").innerHTML = html;
+  updateTotal();
+}
+function updateTotal() {
+  const total = Object.entries(cart).reduce((s, [i, q]) => s + allItems[i].price * q, 0);
+  $("orderTotal").textContent = money(total);
+}
+
+$("orderItems").addEventListener("click", e => {
+  const b = e.target.closest("button[data-i]");
+  if (!b) return;
+  const i = b.dataset.i;
+  cart[i] = Math.max(0, (cart[i] || 0) + Number(b.dataset.d));
+  $("q" + i).textContent = cart[i];
+  updateTotal();
+});
+
+document.querySelectorAll(".order-open").forEach(b => b.addEventListener("click", () => {
+  $("orderMsg").textContent = "";
+  renderOrder();
+  dialog.showModal();
+}));
+dialog.addEventListener("click", e => { if (e.target === dialog) dialog.close(); });
+
+$("orderSubmit").addEventListener("click", () => {
+  const msg = $("orderMsg");
+  const count = Object.values(cart).reduce((a, b) => a + b, 0);
+  const name = $("orderName").value.trim();
+  if (!count) { msg.className = "form-msg error"; msg.textContent = "Add at least one item to your order."; return; }
+  if (!name) { msg.className = "form-msg error"; msg.textContent = "Please enter your name for pick-up."; return; }
+  // Demo only: send the order to your backend or point-of-sale here.
+  msg.className = "form-msg ok";
+  msg.textContent = `Thanks, ${name.split(" ")[0]}! ${count} item${count > 1 ? "s" : ""} for pick-up (${$("orderTime").value.toLowerCase()}), ${$("orderTotal").textContent}.`;
+  Object.keys(cart).forEach(k => delete cart[k]);
+  renderOrder();
+});
+
+/* ---------- Footer ---------- */
+$("year").textContent = new Date().getFullYear();
