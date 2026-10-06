@@ -233,3 +233,30 @@ dialog::backdrop { background: rgba(43, 24, 16, .65); }
   .steam { animation: none; }
   * { transition: none !important; }
 }
+
+.order-open {
+  position: relative;
+}
+
+.order-open::after {
+  content: attr(data-count);
+  position: absolute;
+  top: -8px;
+  right: -6px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 6px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: var(--espresso);
+  color: var(--cream);
+  border-radius: 999px;
+  font-size: .7rem;
+  font-weight: 700;
+}
+
+.order-open[data-count="0"]::after { display: none; }
+.order-open[data-count]:not([data-count="0"])::after { display: inline-flex; }
+
+.order-open[data-count="0"] { --badge-opacity: 0; }

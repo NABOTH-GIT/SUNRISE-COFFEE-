@@ -1,6 +1,7 @@
 "use strict";
 
-/* ---------- Data ---------- */
+const STORAGE_KEY = "sunrise-coffee-cart";
+
 const MENU = {
   coffee: [
     { name: "Espresso", desc: "Double shot, rich and sweet", price: 3.5 },
@@ -31,16 +32,44 @@ const REVIEWS = [
   { text: "Lovely breakfast menu and generous portions. We come here every Saturday with the kids.", name: "Tom & Lena R.", stars: 4 }
 ];
 
-const allItems = [
-  ...MENU.coffee.map(i => ({ ...i, group: "Coffee" })),
-  ...MENU.food.map(i => ({ ...i, group: "Food" }))
-];
-
 const HOURS = [[7, 16], [6.5, 17], [6.5, 17], [6.5, 17], [6.5, 17], [6.5, 17], [7, 16]];
 const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+const allItems = [...MENU.coffee.map(i => ({ ...i, group: "Coffee" })), ...MENU.food.map(i => ({ ...i, group: "Food" }))];
 
 const money = n => "$" + n.toFixed(2);
 const $ = id => document.getElementById(id);
+
+function getStoredCart() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed === "object") return parsed;
+  } catch (error) {
+    console.warn("Cart could not be loaded from localStorage:", error);
+  }
+  return {};
+}
+
+const cart = getStoredCart();
+
+function persistCart() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(cart));
+  } catch (error) {
+    console.warn("Cart could not be saved to localStorage:", error);
+  }
+}
+
+function updateOrderBadges() {
+  const total = Object.values(cart).reduce((sum, qty) => sum + Number(qty || 0), 0);
+  document.querySelectorAll(".order-open").forEach(button => {
+    const label = button.dataset.originalLabel || button.textContent.replace(/\s*\(\d+\)$/, "").trim();
+    button.dataset.originalLabel = label;
+    button.textContent = total > 0 ? `${label} (${total})` : label;
+    button.setAttribute("aria-label", total > 0 ? `${label} with ${total} item${total > 1 ? "s" : ""} in cart` : label);
+  });
+}
 
 const header = $("header");
 const navToggle = $("navToggle");
@@ -76,17 +105,6 @@ function getItemIndex(cat, item) {
   return allItems.findIndex(entry => entry.group === group && entry.name === item.name && entry.price === item.price);
 }
 
-function updateOrderBadges() {
-  const total = Object.values(cart).reduce((sum, qty) => sum + qty, 0);
-  document.querySelectorAll(".order-open").forEach(btn => {
-    const count = total > 0 ? ` (${total})` : "";
-    btn.setAttribute("data-count", total);
-    const label = btn.dataset.originalLabel || btn.textContent.trim();
-    btn.dataset.originalLabel = label;
-    btn.textContent = label + count;
-  });
-}
-
 function renderMenu(cat) {
   if (!menuList) return;
   menuList.innerHTML = MENU[cat].map(i => {
@@ -119,6 +137,7 @@ if (menuList) {
     const idx = Number(btn.dataset.index);
     if (Number.isNaN(idx)) return;
     cart[idx] = (cart[idx] || 0) + 1;
+    persistCart();
     updateOrderBadges();
     if (dialog) {
       renderOrder();
@@ -213,7 +232,6 @@ if (contactForm) {
 }
 
 const dialog = $("orderDialog");
-const cart = {};
 
 function renderOrder() {
   if (!$("orderItems")) return;
@@ -243,7 +261,7 @@ function renderOrder() {
 
 function updateTotal() {
   if (!$("orderTotal")) return;
-  const total = Object.entries(cart).reduce((sum, [i, q]) => sum + allItems[i].price * q, 0);
+  const total = Object.entries(cart).reduce((sum, [idx, qty]) => sum + allItems[idx].price * qty, 0);
   $("orderTotal").textContent = money(total);
 }
 
@@ -254,14 +272,15 @@ if ($("orderItems")) {
     const i = Number(b.dataset.i);
     cart[i] = Math.max(0, (cart[i] || 0) + Number(b.dataset.d));
     if (cart[i] === 0) delete cart[i];
+    persistCart();
     renderOrder();
     updateOrderBadges();
   });
 }
 
-document.querySelectorAll(".order-open").forEach(b => {
-  b.dataset.originalLabel = b.textContent.trim();
-  b.addEventListener("click", () => {
+document.querySelectorAll(".order-open").forEach(button => {
+  button.dataset.originalLabel = button.textContent.trim();
+  button.addEventListener("click", () => {
     if (!dialog) return;
     $("orderMsg").textContent = "";
     renderOrder();
@@ -287,9 +306,12 @@ if (orderSubmit) {
     const name = $("orderName").value.trim();
     if (!count) { msg.className = "form-msg error"; msg.textContent = "Add at least one item to your order."; return; }
     if (!name) { msg.className = "form-msg error"; msg.textContent = "Please enter your name for pick-up."; return; }
+
     msg.className = "form-msg ok";
     msg.textContent = `Thanks, ${name.split(" ")[0]}! ${count} item${count > 1 ? "s" : ""} for pick-up (${$("orderTime").value.toLowerCase()}), ${$("orderTotal").textContent}.`;
+
     Object.keys(cart).forEach(k => delete cart[k]);
+    persistCart();
     renderOrder();
     updateOrderBadges();
   });
@@ -299,3 +321,4 @@ const yearEl = $("year");
 if (yearEl) yearEl.textContent = new Date().getFullYear();
 
 updateOrderBadges();
+renderOrder();

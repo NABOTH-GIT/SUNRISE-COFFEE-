@@ -1,208 +1,191 @@
-"use strict";
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#2B1810">
+  <meta name="description" content="Sunrise Coffee: small-batch coffee, fresh pastries and breakfast, open early every day.">
+  <meta property="og:title" content="Sunrise Coffee | Small-batch coffee & fresh bakes">
+  <meta property="og:description" content="Freshly roasted beans, pastries baked at dawn and a warm seat waiting for you.">
+  <meta property="og:type" content="website">
+  <title>Sunrise Coffee | Small-batch coffee &amp; fresh bakes</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
 
-/* ---------- Data ---------- */
-const MENU = {
-  coffee: [
-    { name: "Espresso", desc: "Double shot, rich and sweet", price: 3.5 },
-    { name: "Americano", desc: "Espresso topped with hot water", price: 4 },
-    { name: "Flat white", desc: "Velvety milk, two shots", price: 4.75 },
-    { name: "Cappuccino", desc: "Thick foam, dusted with cocoa", price: 4.75 },
-    { name: "Sunrise latte", desc: "Espresso, honey and cinnamon", price: 5.5 },
-    { name: "Cold brew", desc: "Steeped 18 hours, served over ice", price: 5 },
-    { name: "Masala chai", desc: "Spiced black tea with steamed milk", price: 4.5 },
-    { name: "Hot chocolate", desc: "Dark cocoa with whipped cream", price: 4.5 }
-  ],
-  food: [
-    { name: "Butter croissant", desc: "Flaky and baked at dawn", price: 3.75 },
-    { name: "Cinnamon roll", desc: "Warm, with cream cheese glaze", price: 4.5 },
-    { name: "Banana bread", desc: "Toasted and served with butter", price: 3.95 },
-    { name: "Blueberry muffin", desc: "Golden crumb top", price: 3.5 },
-    { name: "Avocado toast", desc: "Sourdough, lime and chili flakes", price: 8.5 },
-    { name: "Egg & cheese bagel", desc: "Fried egg, cheddar and tomato", price: 7.5 },
-    { name: "Granola bowl", desc: "Yoghurt, honey and fresh fruit", price: 6.95 },
-    { name: "Ham & cheese toastie", desc: "Grilled sourdough, mustard", price: 7.25 }
-  ]
-};
+  <header class="site-header" id="header">
+    <div class="container nav">
+      <a href="#home" class="logo"><span class="logo-sun"></span>Sunrise Coffee</a>
+      <button class="nav-toggle" id="navToggle" aria-expanded="false" aria-controls="navLinks" aria-label="Open menu">
+        <span></span><span></span><span></span>
+      </button>
+      <nav id="navLinks" class="nav-links" aria-label="Main">
+        <a href="#about">About</a>
+        <a href="#menu">Menu</a>
+        <a href="#reviews">Reviews</a>
+        <a href="#hours">Hours</a>
+        <a href="#contact">Contact</a>
+        <button class="btn btn-gold order-open" type="button">Order now</button>
+      </nav>
+    </div>
+  </header>
 
-const REVIEWS = [
-  { text: "The best flat white in the neighbourhood. The staff remember my order and the croissants are unreal.", name: "Amara K.", stars: 5 },
-  { text: "A calm, cozy spot to work for a few hours. Great coffee, friendly team and fast Wi-Fi.", name: "Daniel M.", stars: 5 },
-  { text: "Their sunrise latte is my weekend treat. Honey and cinnamon, perfectly balanced.", name: "Priya S.", stars: 5 },
-  { text: "Lovely breakfast menu and generous portions. We come here every Saturday with the kids.", name: "Tom & Lena R.", stars: 4 }
-];
-
-// Hours by day index (0 = Sunday). Values are 24h decimals.
-const HOURS = [[7, 16], [6.5, 17], [6.5, 17], [6.5, 17], [6.5, 17], [6.5, 17], [7, 16]];
-const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-
-const money = n => "$" + n.toFixed(2);
-const $ = id => document.getElementById(id);
-
-/* ---------- Navigation ---------- */
-const header = $("header");
-const navToggle = $("navToggle");
-const navLinks = $("navLinks");
-
-function setNav(open) {
-  navLinks.classList.toggle("open", open);
-  navToggle.setAttribute("aria-expanded", open);
-  navToggle.setAttribute("aria-label", open ? "Close menu" : "Open menu");
-}
-navToggle.addEventListener("click", () => setNav(!navLinks.classList.contains("open")));
-navLinks.addEventListener("click", e => { if (e.target.closest("a, button")) setNav(false); });
-window.addEventListener("scroll", () => header.classList.toggle("scrolled", window.scrollY > 10), { passive: true });
-
-/* ---------- Menu tabs ---------- */
-const menuList = $("menuList");
-function renderMenu(cat) {
-  menuList.innerHTML = MENU[cat].map(i => `
-    <li class="menu-item">
-      <div><h3>${i.name}</h3><p>${i.desc}</p></div>
-      <span class="price">${money(i.price)}</span>
-    </li>`).join("");
-  document.querySelectorAll(".tab").forEach(t => {
-    const on = t.dataset.cat === cat;
-    t.classList.toggle("active", on);
-    t.setAttribute("aria-selected", on);
-  });
-}
-document.querySelectorAll(".tab").forEach(t => t.addEventListener("click", () => renderMenu(t.dataset.cat)));
-renderMenu("coffee");
-
-/* ---------- Reviews slider ---------- */
-const slidesEl = $("slides");
-const dotsEl = $("dots");
-let current = 0, timer;
-
-slidesEl.innerHTML = REVIEWS.map((r, i) => `
-  <figure class="slide${i === 0 ? " active" : ""}" style="margin:0">
-    <div class="stars" aria-label="${r.stars} out of 5 stars">${"★".repeat(r.stars)}${"☆".repeat(5 - r.stars)}</div>
-    <blockquote>"${r.text}"</blockquote>
-    <cite>${r.name}</cite>
-  </figure>`).join("");
-dotsEl.innerHTML = REVIEWS.map((_, i) => `<button class="dot${i === 0 ? " active" : ""}" aria-label="Show review ${i + 1}"></button>`).join("");
-
-const slides = slidesEl.children;
-const dots = dotsEl.children;
-
-function goTo(n) {
-  slides[current].classList.remove("active");
-  dots[current].classList.remove("active");
-  current = (n + REVIEWS.length) % REVIEWS.length;
-  slides[current].classList.add("active");
-  dots[current].classList.add("active");
-}
-function autoplay() {
-  clearInterval(timer);
-  if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-    timer = setInterval(() => goTo(current + 1), 6000);
-  }
-}
-$("prev").addEventListener("click", () => { goTo(current - 1); autoplay(); });
-$("next").addEventListener("click", () => { goTo(current + 1); autoplay(); });
-[...dots].forEach((d, i) => d.addEventListener("click", () => { goTo(i); autoplay(); }));
-autoplay();
-
-/* ---------- Opening hours ---------- */
-const fmt = h => {
-  const hr = Math.floor(h) % 12 || 12;
-  return `${hr}:${h % 1 ? "30" : "00"} ${h < 12 ? "AM" : "PM"}`;
-};
-const now = new Date();
-const today = now.getDay();
-const t = now.getHours() + now.getMinutes() / 60;
-
-$("hoursBody").innerHTML = [1, 2, 3, 4, 5, 6, 0].map(d => `
-  <tr class="${d === today ? "today" : ""}">
-    <td>${DAYS[d]}</td><td>${fmt(HOURS[d][0])} – ${fmt(HOURS[d][1])}</td>
-  </tr>`).join("");
-
-const status = $("status");
-const [open, close] = HOURS[today];
-if (t >= open && t < close) {
-  status.className = "status open";
-  status.textContent = `Open now, until ${fmt(close)}`;
-} else {
-  status.className = "status closed";
-  status.textContent = t < open
-    ? `Closed. Opens today at ${fmt(open)}`
-    : `Closed. Opens tomorrow at ${fmt(HOURS[(today + 1) % 7][0])}`;
-}
-
-/* ---------- Contact form ---------- */
-$("contactForm").addEventListener("submit", e => {
-  e.preventDefault();
-  const f = e.target, msg = $("formMsg");
-  const ok = f.name.value.trim() && /^\S+@\S+\.\S+$/.test(f.email.value) && f.message.value.trim();
-  if (!ok) {
-    msg.className = "form-msg error";
-    msg.textContent = "Please enter your name, a valid email and a message.";
-    return;
-  }
-  // Demo only: connect this to a form service or backend to receive messages.
-  msg.className = "form-msg ok";
-  msg.textContent = `Thanks, ${f.name.value.trim().split(" ")[0]}! We'll reply soon.`;
-  f.reset();
-});
-
-/* ---------- Order dialog ---------- */
-const dialog = $("orderDialog");
-const cart = {};
-const allItems = [
-  ...MENU.coffee.map(i => ({ ...i, group: "Coffee" })),
-  ...MENU.food.map(i => ({ ...i, group: "Food" }))
-];
-
-function renderOrder() {
-  let html = "", group = "";
-  allItems.forEach((it, idx) => {
-    if (it.group !== group) { group = it.group; html += `<p class="order-group">${group}</p>`; }
-    html += `
-      <div class="order-row">
-        <div>${it.name}<small>${money(it.price)}</small></div>
-        <div class="qty">
-          <button type="button" data-i="${idx}" data-d="-1" aria-label="Remove one ${it.name}">−</button>
-          <output id="q${idx}">${cart[idx] || 0}</output>
-          <button type="button" data-i="${idx}" data-d="1" aria-label="Add one ${it.name}">+</button>
+  <main>
+    <section class="hero" id="home">
+      <div class="container hero-grid">
+        <div class="hero-text">
+          <p class="kicker">Small-batch coffee since 2019</p>
+          <h1>Your morning, <br>brewed with care.</h1>
+          <p class="lead">Freshly roasted beans, pastries baked at dawn and a warm seat waiting for you. Sunrise Coffee opens early so your day starts well.</p>
+          <div class="hero-actions">
+            <button class="btn btn-gold order-open" type="button">Order now</button>
+            <a href="#menu" class="btn btn-outline">View menu</a>
+          </div>
+          <ul class="hero-stats">
+            <li><strong>4.9</strong> average rating</li>
+            <li><strong>7 days</strong> bean freshness</li>
+            <li><strong>6:30 AM</strong> first pour</li>
+          </ul>
         </div>
-      </div>`;
-  });
-  $("orderItems").innerHTML = html;
-  updateTotal();
-}
-function updateTotal() {
-  const total = Object.entries(cart).reduce((s, [i, q]) => s + allItems[i].price * q, 0);
-  $("orderTotal").textContent = money(total);
-}
+        <div class="hero-art" aria-hidden="true">
+          <svg viewBox="0 0 320 320" class="cup">
+            <circle cx="160" cy="160" r="150" fill="#C9962B" opacity=".16"/>
+            <circle cx="160" cy="160" r="110" fill="#C9962B" opacity=".22"/>
+            <path class="steam" d="M120 90c-14-16 14-26 0-44M160 94c-14-16 14-26 0-44M200 90c-14-16 14-26 0-44" fill="none" stroke="#F5E9D3" stroke-width="6" stroke-linecap="round"/>
+            <path d="M82 128h156v62a64 64 0 0 1-64 64h-28a64 64 0 0 1-64-64z" fill="#F5E9D3"/>
+            <path d="M238 146h22a24 24 0 0 1 0 48h-26" fill="none" stroke="#F5E9D3" stroke-width="14" stroke-linecap="round"/>
+            <ellipse cx="160" cy="128" rx="78" ry="14" fill="#5A3420"/>
+            <ellipse cx="160" cy="128" rx="60" ry="9" fill="#C9962B"/>
+            <rect x="70" y="268" width="180" height="14" rx="7" fill="#C9962B"/>
+          </svg>
+        </div>
+      </div>
+    </section>
 
-$("orderItems").addEventListener("click", e => {
-  const b = e.target.closest("button[data-i]");
-  if (!b) return;
-  const i = b.dataset.i;
-  cart[i] = Math.max(0, (cart[i] || 0) + Number(b.dataset.d));
-  $("q" + i).textContent = cart[i];
-  updateTotal();
-});
+    <section class="section" id="about">
+      <div class="container about-grid">
+        <div>
+          <h2>Our story</h2>
+          <p>Sunrise Coffee started with one espresso machine and a simple idea: a neighbourhood café that is open for the early risers, the night-shift workers and everyone in between.</p>
+          <p>We roast in small batches, bake every morning and buy directly from farms we trust. Whether you stop for a quick espresso or settle in for the afternoon, you are always welcome here.</p>
+        </div>
+        <div class="values">
+          <div class="value"><h3>Roasted weekly</h3><p>Beans are never more than seven days from the roaster.</p></div>
+          <div class="value"><h3>Baked at dawn</h3><p>Croissants, muffins and banana bread, fresh before we open.</p></div>
+          <div class="value"><h3>Ethically sourced</h3><p>Fair prices paid directly to the growers we work with.</p></div>
+        </div>
+      </div>
+    </section>
 
-document.querySelectorAll(".order-open").forEach(b => b.addEventListener("click", () => {
-  $("orderMsg").textContent = "";
-  renderOrder();
-  dialog.showModal();
-}));
-dialog.addEventListener("click", e => { if (e.target === dialog) dialog.close(); });
+    <section class="section section-dark" id="menu">
+      <div class="container">
+        <div class="section-head">
+          <h2>Our menu</h2>
+          <p>Everything is made to order. Oat, soy and almond milk at no extra charge.</p>
+        </div>
+        <div class="tabs" role="tablist" aria-label="Menu categories">
+          <button class="tab active" role="tab" aria-selected="true" data-cat="coffee">Coffee</button>
+          <button class="tab" role="tab" aria-selected="false" data-cat="food">Food</button>
+        </div>
+        <ul class="menu-list" id="menuList"></ul>
+        <div class="center"><button class="btn btn-gold order-open" type="button">Order now</button></div>
+      </div>
+    </section>
 
-$("orderSubmit").addEventListener("click", () => {
-  const msg = $("orderMsg");
-  const count = Object.values(cart).reduce((a, b) => a + b, 0);
-  const name = $("orderName").value.trim();
-  if (!count) { msg.className = "form-msg error"; msg.textContent = "Add at least one item to your order."; return; }
-  if (!name) { msg.className = "form-msg error"; msg.textContent = "Please enter your name for pick-up."; return; }
-  // Demo only: send the order to your backend or point-of-sale here.
-  msg.className = "form-msg ok";
-  msg.textContent = `Thanks, ${name.split(" ")[0]}! ${count} item${count > 1 ? "s" : ""} for pick-up (${$("orderTime").value.toLowerCase()}), ${$("orderTotal").textContent}.`;
-  Object.keys(cart).forEach(k => delete cart[k]);
-  renderOrder();
-});
+    <section class="section" id="reviews">
+      <div class="container">
+        <div class="section-head">
+          <h2>What our customers say</h2>
+        </div>
+        <div class="slider" aria-roledescription="carousel" aria-label="Customer reviews">
+          <div class="slides" id="slides"></div>
+          <div class="slider-controls">
+            <button class="round" id="prev" aria-label="Previous review">&larr;</button>
+            <div class="dots" id="dots"></div>
+            <button class="round" id="next" aria-label="Next review">&rarr;</button>
+          </div>
+        </div>
+      </div>
+    </section>
 
-/* ---------- Footer ---------- */
-$("year").textContent = new Date().getFullYear();
+    <section class="section section-cream" id="hours">
+      <div class="container info-grid">
+        <div class="card">
+          <h2>Opening hours</h2>
+          <p class="status" id="status" role="status" aria-live="polite">Checking hours...</p>
+          <table class="hours-table">
+            <tbody id="hoursBody"></tbody>
+          </table>
+        </div>
+        <div class="card" id="contact">
+          <h2>Contact us</h2>
+          <ul class="contact-list">
+            <li><span>Phone</span><a href="tel:+10000000000">+1 (000) 000-0000</a></li>
+            <li><span>Email</span><a href="mailto:hello@sunrisecoffee.example">hello@sunrisecoffee.example</a></li>
+            <li><span>Instagram</span><a href="#">@sunrisecoffee</a></li>
+          </ul>
+          <form id="contactForm" novalidate>
+            <label>Name<input type="text" name="name" autocomplete="name" required></label>
+            <label>Email<input type="email" name="email" autocomplete="email" required></label>
+            <label>Message<textarea name="message" rows="3" required></textarea></label>
+            <button class="btn btn-brown" type="submit">Send message</button>
+            <p class="form-msg" id="formMsg" role="status" aria-live="polite"></p>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="location">
+      <div class="container location-grid">
+        <div>
+          <h2>Find us</h2>
+          <p>12 Garden Lane<br>Next to the old clock tower<br>Your City, 00000</p>
+          <p>Free parking behind the building, and bike racks right by the door.</p>
+          <a class="btn btn-brown" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=12+Garden+Lane">Get directions</a>
+        </div>
+        <div class="map" role="img" aria-label="Map placeholder showing the café location">
+          <div class="map-grid"></div>
+          <div class="pin"><span></span>Sunrise Coffee</div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-grid">
+      <div>
+        <a href="#home" class="logo"><span class="logo-sun"></span>Sunrise Coffee</a>
+        <p>Small-batch coffee and fresh bakes, every morning.</p>
+      </div>
+      <nav class="footer-links" aria-label="Footer">
+        <a href="#about">About</a><a href="#menu">Menu</a><a href="#reviews">Reviews</a><a href="#hours">Hours</a><a href="#location">Location</a>
+      </nav>
+      <p class="copy">&copy; <span id="year"></span> Sunrise Coffee. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <dialog id="orderDialog" aria-labelledby="orderTitle">
+    <form method="dialog" class="order-head">
+      <h2 id="orderTitle">Start your order</h2>
+      <button class="round" aria-label="Close order form">&times;</button>
+    </form>
+    <div class="order-body">
+      <div id="orderItems"></div>
+      <div class="order-total"><span>Total</span><strong id="orderTotal">$0.00</strong></div>
+      <label>Your name<input type="text" id="orderName" autocomplete="name"></label>
+      <label>Pick-up time
+        <select id="orderTime">
+          <option>As soon as possible</option><option>In 15 minutes</option><option>In 30 minutes</option><option>In 1 hour</option>
+        </select>
+      </label>
+      <button class="btn btn-gold wide" id="orderSubmit" type="button">Place order</button>
+      <p class="form-msg" id="orderMsg" role="status" aria-live="polite"></p>
+    </div>
+  </dialog>
+
+  <script src="script.js"></script>
+</body>
+</html>
