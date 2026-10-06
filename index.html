@@ -120,9 +120,21 @@ ul { list-style: none; margin: 0; padding: 0; }
 .tab.active { background: var(--gold); border-color: var(--gold); color: var(--espresso); font-weight: 700; }
 .menu-list { display: grid; grid-template-columns: repeat(2, 1fr); column-gap: 3.5rem; }
 .menu-item { display: flex; justify-content: space-between; gap: 1rem; padding: 1.15rem 0; border-bottom: 1px dashed rgba(245, 233, 211, .25); }
+.menu-copy { flex: 1; }
 .menu-item h3 { font-family: var(--body); font-weight: 700; font-size: 1.15rem; margin: 0; }
 .menu-item p { margin: .15rem 0 0; font-size: .95rem; color: rgba(245, 233, 211, .7); }
+.menu-actions { display: flex; align-items: center; gap: .9rem; }
 .price { font: 700 1.2rem var(--head); color: var(--gold-light); white-space: nowrap; }
+.mini-order {
+  background: var(--gold);
+  color: var(--espresso);
+  border: none;
+  border-radius: 999px;
+  padding: .5rem .9rem;
+  font: 700 .85rem var(--body);
+  cursor: pointer;
+}
+.mini-order:hover { background: var(--gold-light); }
 
 /* ---------- Reviews ---------- */
 .slider { max-width: 760px; margin-inline: auto; text-align: center; }
@@ -204,6 +216,7 @@ dialog::backdrop { background: rgba(43, 24, 16, .65); }
 .qty button:hover { background: var(--brown); color: var(--cream); }
 .qty output { min-width: 1.2rem; text-align: center; font-weight: 700; }
 .order-total { display: flex; justify-content: space-between; font-size: 1.2rem; padding-top: .5rem; }
+.empty-order { margin: 0; color: var(--muted); }
 
 /* ---------- Responsive ---------- */
 @media (max-width: 860px) {
@@ -225,6 +238,7 @@ dialog::backdrop { background: rgba(43, 24, 16, .65); }
   }
   .nav-links.open { display: flex; }
   .slides { min-height: 330px; }
+  .menu-item { align-items: flex-start; }
 }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }

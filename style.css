@@ -31,6 +31,11 @@ const REVIEWS = [
   { text: "Lovely breakfast menu and generous portions. We come here every Saturday with the kids.", name: "Tom & Lena R.", stars: 4 }
 ];
 
+const allItems = [
+  ...MENU.coffee.map(i => ({ ...i, group: "Coffee" })),
+  ...MENU.food.map(i => ({ ...i, group: "Food" }))
+];
+
 // Hours by day index (0 = Sunday). Values are 24h decimals.
 const HOURS = [[7, 16], [6.5, 17], [6.5, 17], [6.5, 17], [6.5, 17], [6.5, 17], [7, 16]];
 const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
@@ -71,11 +76,20 @@ if (header) {
 const menuList = $("menuList");
 function renderMenu(cat) {
   if (!menuList) return;
-  menuList.innerHTML = MENU[cat].map(i => `
-    <li class="menu-item">
-      <div><h3>${i.name}</h3><p>${i.desc}</p></div>
-      <span class="price">${money(i.price)}</span>
-    </li>`).join("");
+  menuList.innerHTML = MENU[cat].map((i, idx) => {
+    const itemIndex = allItems.findIndex(item => item.group === (cat === "coffee" ? "Coffee" : "Food") && item.name === i.name && item.price === i.price);
+    return `
+      <li class="menu-item">
+        <div class="menu-copy">
+          <h3>${i.name}</h3>
+          <p>${i.desc}</p>
+        </div>
+        <div class="menu-actions">
+          <span class="price">${money(i.price)}</span>
+          <button class="mini-order" type="button" data-index="${itemIndex}" aria-label="Add ${i.name} to order">Add</button>
+        </div>
+      </li>`;
+  }).join("");
   document.querySelectorAll(".tab").forEach(t => {
     const on = t.dataset.cat === cat;
     t.classList.toggle("active", on);
@@ -84,6 +98,23 @@ function renderMenu(cat) {
 }
 
 document.querySelectorAll(".tab").forEach(t => t.addEventListener("click", () => renderMenu(t.dataset.cat)));
+if (menuList) {
+  menuList.addEventListener("click", e => {
+    const btn = e.target.closest("button[data-index]");
+    if (!btn) return;
+    const idx = Number(btn.dataset.index);
+    if (Number.isNaN(idx)) return;
+    cart[idx] = (cart[idx] || 0) + 1;
+    if (dialog) {
+      renderOrder();
+      if (typeof dialog.showModal === "function") {
+        dialog.showModal();
+      } else {
+        dialog.setAttribute("open", "open");
+      }
+    }
+  });
+}
 renderMenu("coffee");
 
 /* ---------- Reviews slider ---------- */
@@ -173,25 +204,25 @@ if (contactForm) {
 /* ---------- Order dialog ---------- */
 const dialog = $("orderDialog");
 const cart = {};
-const allItems = [
-  ...MENU.coffee.map(i => ({ ...i, group: "Coffee" })),
-  ...MENU.food.map(i => ({ ...i, group: "Food" }))
-];
 
 function renderOrder() {
   let html = "", group = "";
   allItems.forEach((it, idx) => {
+    if (!(cart[idx] > 0)) return;
     if (it.group !== group) { group = it.group; html += `<p class="order-group">${group}</p>`; }
     html += `
       <div class="order-row">
         <div>${it.name}<small>${money(it.price)}</small></div>
         <div class="qty">
           <button type="button" data-i="${idx}" data-d="-1" aria-label="Remove one ${it.name}">−</button>
-          <output id="q${idx}">${cart[idx] || 0}</output>
+          <output id="q${idx}">${cart[idx]}</output>
           <button type="button" data-i="${idx}" data-d="1" aria-label="Add one ${it.name}">+</button>
         </div>
       </div>`;
   });
+  if (!html) {
+    html = '<p class="empty-order">Your cart is empty. Add a drink or bite to get started.</p>';
+  }
   $("orderItems").innerHTML = html;
   updateTotal();
 }
@@ -204,9 +235,13 @@ if ($("orderItems")) {
   $("orderItems").addEventListener("click", e => {
     const b = e.target.closest("button[data-i]");
     if (!b) return;
-    const i = b.dataset.i;
+    const i = Number(b.dataset.i);
     cart[i] = Math.max(0, (cart[i] || 0) + Number(b.dataset.d));
-    $("q" + i).textContent = cart[i];
+    if (cart[i] === 0) delete cart[i];
+    if (document.getElementById("q" + i)) {
+      document.getElementById("q" + i).textContent = cart[i] || 0;
+    }
+    renderOrder();
     updateTotal();
   });
 }
