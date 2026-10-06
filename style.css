@@ -36,14 +36,12 @@ const allItems = [
   ...MENU.food.map(i => ({ ...i, group: "Food" }))
 ];
 
-// Hours by day index (0 = Sunday). Values are 24h decimals.
 const HOURS = [[7, 16], [6.5, 17], [6.5, 17], [6.5, 17], [6.5, 17], [6.5, 17], [7, 16]];
 const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
 const money = n => "$" + n.toFixed(2);
 const $ = id => document.getElementById(id);
 
-/* ---------- Navigation ---------- */
 const header = $("header");
 const navToggle = $("navToggle");
 const navLinks = $("navLinks");
@@ -72,12 +70,27 @@ if (header) {
   window.addEventListener("scroll", () => header.classList.toggle("scrolled", window.scrollY > 10), { passive: true });
 }
 
-/* ---------- Menu tabs ---------- */
 const menuList = $("menuList");
+function getItemIndex(cat, item) {
+  const group = cat === "coffee" ? "Coffee" : "Food";
+  return allItems.findIndex(entry => entry.group === group && entry.name === item.name && entry.price === item.price);
+}
+
+function updateOrderBadges() {
+  const total = Object.values(cart).reduce((sum, qty) => sum + qty, 0);
+  document.querySelectorAll(".order-open").forEach(btn => {
+    const count = total > 0 ? ` (${total})` : "";
+    btn.setAttribute("data-count", total);
+    const label = btn.dataset.originalLabel || btn.textContent.trim();
+    btn.dataset.originalLabel = label;
+    btn.textContent = label + count;
+  });
+}
+
 function renderMenu(cat) {
   if (!menuList) return;
-  menuList.innerHTML = MENU[cat].map((i, idx) => {
-    const itemIndex = allItems.findIndex(item => item.group === (cat === "coffee" ? "Coffee" : "Food") && item.name === i.name && item.price === i.price);
+  menuList.innerHTML = MENU[cat].map(i => {
+    const itemIndex = getItemIndex(cat, i);
     return `
       <li class="menu-item">
         <div class="menu-copy">
@@ -90,6 +103,7 @@ function renderMenu(cat) {
         </div>
       </li>`;
   }).join("");
+
   document.querySelectorAll(".tab").forEach(t => {
     const on = t.dataset.cat === cat;
     t.classList.toggle("active", on);
@@ -105,19 +119,16 @@ if (menuList) {
     const idx = Number(btn.dataset.index);
     if (Number.isNaN(idx)) return;
     cart[idx] = (cart[idx] || 0) + 1;
+    updateOrderBadges();
     if (dialog) {
       renderOrder();
-      if (typeof dialog.showModal === "function") {
-        dialog.showModal();
-      } else {
-        dialog.setAttribute("open", "open");
-      }
+      if (typeof dialog.showModal === "function") dialog.showModal();
+      else dialog.setAttribute("open", "open");
     }
   });
 }
 renderMenu("coffee");
 
-/* ---------- Reviews slider ---------- */
 const slidesEl = $("slides");
 const dotsEl = $("dots");
 let current = 0, timer;
@@ -141,19 +152,20 @@ if (slidesEl && dotsEl) {
     slides[current].classList.add("active");
     dots[current].classList.add("active");
   }
+
   function autoplay() {
     clearInterval(timer);
     if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       timer = setInterval(() => goTo(current + 1), 6000);
     }
   }
+
   $("prev").addEventListener("click", () => { goTo(current - 1); autoplay(); });
   $("next").addEventListener("click", () => { goTo(current + 1); autoplay(); });
   [...dots].forEach((d, i) => d.addEventListener("click", () => { goTo(i); autoplay(); }));
   autoplay();
 }
 
-/* ---------- Opening hours ---------- */
 const fmt = h => {
   const hr = Math.floor(h) % 12 || 12;
   return `${hr}:${h % 1 ? "30" : "00"} ${h < 12 ? "AM" : "PM"}`;
@@ -183,7 +195,6 @@ if (status) {
   }
 }
 
-/* ---------- Contact form ---------- */
 const contactForm = $("contactForm");
 if (contactForm) {
   contactForm.addEventListener("submit", e => {
@@ -201,11 +212,12 @@ if (contactForm) {
   });
 }
 
-/* ---------- Order dialog ---------- */
 const dialog = $("orderDialog");
 const cart = {};
 
 function renderOrder() {
+  if (!$("orderItems")) return;
+
   let html = "", group = "";
   allItems.forEach((it, idx) => {
     if (!(cart[idx] > 0)) return;
@@ -220,14 +232,18 @@ function renderOrder() {
         </div>
       </div>`;
   });
+
   if (!html) {
     html = '<p class="empty-order">Your cart is empty. Add a drink or bite to get started.</p>';
   }
+
   $("orderItems").innerHTML = html;
   updateTotal();
 }
+
 function updateTotal() {
-  const total = Object.entries(cart).reduce((s, [i, q]) => s + allItems[i].price * q, 0);
+  if (!$("orderTotal")) return;
+  const total = Object.entries(cart).reduce((sum, [i, q]) => sum + allItems[i].price * q, 0);
   $("orderTotal").textContent = money(total);
 }
 
@@ -238,24 +254,22 @@ if ($("orderItems")) {
     const i = Number(b.dataset.i);
     cart[i] = Math.max(0, (cart[i] || 0) + Number(b.dataset.d));
     if (cart[i] === 0) delete cart[i];
-    if (document.getElementById("q" + i)) {
-      document.getElementById("q" + i).textContent = cart[i] || 0;
-    }
     renderOrder();
-    updateTotal();
+    updateOrderBadges();
   });
 }
 
-document.querySelectorAll(".order-open").forEach(b => b.addEventListener("click", () => {
-  if (!dialog) return;
-  $("orderMsg").textContent = "";
-  renderOrder();
-  if (typeof dialog.showModal === "function") {
-    dialog.showModal();
-  } else {
-    dialog.setAttribute("open", "open");
-  }
-}));
+document.querySelectorAll(".order-open").forEach(b => {
+  b.dataset.originalLabel = b.textContent.trim();
+  b.addEventListener("click", () => {
+    if (!dialog) return;
+    $("orderMsg").textContent = "";
+    renderOrder();
+    if (typeof dialog.showModal === "function") dialog.showModal();
+    else dialog.setAttribute("open", "open");
+  });
+});
+
 if (dialog) {
   dialog.addEventListener("click", e => {
     if (e.target === dialog) {
@@ -277,9 +291,11 @@ if (orderSubmit) {
     msg.textContent = `Thanks, ${name.split(" ")[0]}! ${count} item${count > 1 ? "s" : ""} for pick-up (${$("orderTime").value.toLowerCase()}), ${$("orderTotal").textContent}.`;
     Object.keys(cart).forEach(k => delete cart[k]);
     renderOrder();
+    updateOrderBadges();
   });
 }
 
-/* ---------- Footer ---------- */
 const yearEl = $("year");
 if (yearEl) yearEl.textContent = new Date().getFullYear();
+
+updateOrderBadges();

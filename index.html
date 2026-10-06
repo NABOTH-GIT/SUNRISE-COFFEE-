@@ -15,7 +15,6 @@
   --body: "DM Sans", system-ui, sans-serif;
 }
 
-/* ---------- Base ---------- */
 *, *::before, *::after { box-sizing: border-box; }
 html { scroll-behavior: smooth; scroll-padding-top: 76px; }
 body {
@@ -42,7 +41,6 @@ ul { list-style: none; margin: 0; padding: 0; }
 .section-dark .section-head p { color: rgba(245, 233, 211, .75); }
 .center { text-align: center; margin-top: 2.5rem; }
 
-/* ---------- Buttons ---------- */
 .btn {
   display: inline-block;
   padding: .85rem 1.6rem;
@@ -62,7 +60,6 @@ ul { list-style: none; margin: 0; padding: 0; }
 .btn-outline:hover { background: var(--cream); color: var(--espresso); }
 .wide { width: 100%; }
 
-/* ---------- Header ---------- */
 .site-header {
   position: sticky; top: 0; z-index: 50;
   background: var(--espresso);
@@ -83,7 +80,6 @@ ul { list-style: none; margin: 0; padding: 0; }
 .nav-toggle[aria-expanded="true"] span:nth-child(2) { opacity: 0; }
 .nav-toggle[aria-expanded="true"] span:nth-child(3) { transform: translateY(-8px) rotate(-45deg); }
 
-/* ---------- Hero ---------- */
 .hero {
   background: radial-gradient(circle at 80% 30%, #6B3F26 0%, var(--brown) 40%, var(--espresso) 100%);
   color: var(--cream);
@@ -101,7 +97,6 @@ ul { list-style: none; margin: 0; padding: 0; }
 .steam { animation: steam 3.5s ease-in-out infinite; }
 @keyframes steam { 0%, 100% { opacity: .35; transform: translateY(0); } 50% { opacity: 1; transform: translateY(-6px); } }
 
-/* ---------- About ---------- */
 .about-grid { display: grid; grid-template-columns: 1.1fr 1fr; gap: clamp(2rem, 6vw, 5rem); align-items: center; }
 .about-grid p { color: var(--muted); }
 .values { display: grid; gap: 1rem; }
@@ -109,7 +104,6 @@ ul { list-style: none; margin: 0; padding: 0; }
 .value h3 { margin-bottom: .25rem; }
 .value p { margin: 0; font-size: .98rem; }
 
-/* ---------- Menu ---------- */
 .tabs { display: flex; gap: .6rem; margin-bottom: 1.5rem; }
 .tab {
   background: transparent; color: var(--cream);
@@ -136,7 +130,6 @@ ul { list-style: none; margin: 0; padding: 0; }
 }
 .mini-order:hover { background: var(--gold-light); }
 
-/* ---------- Reviews ---------- */
 .slider { max-width: 760px; margin-inline: auto; text-align: center; }
 .slides { position: relative; min-height: 250px; }
 .slide { position: absolute; inset: 0; opacity: 0; visibility: hidden; transition: opacity .5s; background: var(--cream); border-radius: var(--radius); padding: 2rem 1.75rem; display: flex; flex-direction: column; justify-content: center; }
@@ -151,7 +144,6 @@ ul { list-style: none; margin: 0; padding: 0; }
 .dot { width: 11px; height: 11px; padding: 0; border-radius: 50%; border: 0; background: var(--line); cursor: pointer; }
 .dot.active { background: var(--gold); transform: scale(1.25); }
 
-/* ---------- Hours & contact ---------- */
 .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.75rem; align-items: start; }
 .card { background: var(--cream-light); border-radius: var(--radius); padding: clamp(1.5rem, 4vw, 2.5rem); box-shadow: 0 10px 30px rgba(90, 52, 32, .1); }
 .status { display: inline-flex; align-items: center; gap: .5rem; font-weight: 700; }
@@ -178,7 +170,6 @@ textarea { resize: vertical; }
 .form-msg.error { color: #B3392F; }
 .form-msg.ok { color: #2E8B57; }
 
-/* ---------- Location ---------- */
 .location-grid { display: grid; grid-template-columns: 1fr 1.2fr; gap: clamp(2rem, 6vw, 4rem); align-items: center; }
 .location-grid p { color: var(--muted); }
 .map { position: relative; min-height: 320px; border-radius: var(--radius); overflow: hidden; background: #E9D9BA; border: 1px solid var(--line); }
@@ -192,7 +183,6 @@ textarea { resize: vertical; }
 .pin { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -100%); background: var(--espresso); color: var(--cream); padding: .5rem 1rem; border-radius: 999px; font-weight: 700; white-space: nowrap; }
 .pin span { position: absolute; left: 50%; bottom: -8px; width: 16px; height: 16px; background: var(--espresso); transform: translateX(-50%) rotate(45deg); z-index: -1; }
 
-/* ---------- Footer ---------- */
 .site-footer { background: var(--espresso); color: var(--cream); padding: 3rem 0 2rem; }
 .footer-grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 1.5rem 2rem; align-items: start; }
 .footer-grid p { color: rgba(245, 233, 211, .7); margin: .75rem 0 0; }
@@ -201,7 +191,6 @@ textarea { resize: vertical; }
 .footer-links a:hover { color: var(--gold-light); }
 .copy { grid-column: 1 / -1; border-top: 1px solid rgba(245, 233, 211, .15); padding-top: 1.25rem; font-size: .9rem; }
 
-/* ---------- Order dialog ---------- */
 dialog { width: min(520px, 100% - 1.5rem); max-height: 90vh; padding: 0; border: 0; border-radius: var(--radius); background: var(--cream-light); color: var(--ink); overflow: auto; }
 dialog::backdrop { background: rgba(43, 24, 16, .65); }
 .order-head { display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 1.5rem; background: var(--espresso); color: var(--cream); position: sticky; top: 0; }
@@ -218,7 +207,6 @@ dialog::backdrop { background: rgba(43, 24, 16, .65); }
 .order-total { display: flex; justify-content: space-between; font-size: 1.2rem; padding-top: .5rem; }
 .empty-order { margin: 0; color: var(--muted); }
 
-/* ---------- Responsive ---------- */
 @media (max-width: 860px) {
   .hero-grid, .about-grid, .info-grid, .location-grid { grid-template-columns: 1fr; }
   .hero-art { order: -1; }
